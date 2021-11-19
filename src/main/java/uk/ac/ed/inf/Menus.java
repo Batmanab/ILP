@@ -9,10 +9,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.*;
-import java.io.*;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class Menus {
     private String machine;
@@ -22,78 +20,66 @@ public class Menus {
     public Menus (String machine, String port){
         this.machine = machine;
         this.port = port;
-    }
+        shopMenus = getShopMenus();
 
-    /**
-    // This function takes two arguments- the names which are in the online order (input) and list of all item names (itemPrice),
-     whenever the input string matches the name of the item in the menu database, it adds it's price to 'fin'
-     @param input is list of items in the order
-     @param itemsPrice is list of items in the database
-     function returns the total price of all the items. It's a helper function.
-    */
-    private static int crossCheck(ArrayList<String> input, ArrayList<MenuArray> itemsPrice) {
-        int fin = 0;
+        for (ShopMenu shopMenu : shopMenus) {
+            for (MenuItem menuItem : shopMenu.menu) {
+                itemPriceMap.put(menuItem.item, menuItem.pence);
+                itemLocationMap.put(menuItem.item, shopMenu.location);
+                itemShopMap.put(menuItem.item,shopMenu.name);
 
-        for(int i = 0; i< input.size();i++) {
-
-            for (int k = 0; k < itemsPrice.size(); k++ ) {
-                if(input.get(i).equals(itemsPrice.get(k).item)) {
-
-                    fin = fin + itemsPrice.get(k).pence;
-                    break;
-                }
             }
         }
-
-
-        return fin;
     }
 
-    /**
-     *
-     * @param args variable number of strings- names of items that have been ordered
-     * @return total price of all times + delivery charge of 50p
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public int getDeliveryCost(String...args) throws IOException, InterruptedException {
-        //request
+    private HashMap<String, Integer> itemPriceMap = new HashMap<>() ;
+    private HashMap<String, String> itemLocationMap= new HashMap<>() ;
+    private HashMap<String, String> itemShopMap= new HashMap<>() ;
+
+    private ArrayList<ShopMenu> getShopMenus()  {
+
         String urlString = "http://" + machine + ":" + port + "/menus/menus.json";
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(urlString))
                 .build();
+        try{
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        //response
-        ArrayList<String> n = new ArrayList<>();
+        if (response.statusCode() == 200) {
+            //Arraylist of data type ShopMenu is created which parses data from the website database using Gson
+            Type listType = new TypeToken<ArrayList<ShopMenu>>() {}.getType();
+            ArrayList<ShopMenu> menus = new Gson().fromJson(response.body(), listType);
 
+            return menus;
 
-        for(String arg: args){
-            n.add(arg);
+        }else {
+            return new ArrayList<ShopMenu>() ;
+        }} catch (Exception e){
+            return new ArrayList<ShopMenu>() ;
         }
 
 
+    }
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    /**
+     *
+     * @param items variable number of strings- names of items that have been ordered
+     * @return total price of all times + delivery charge of 50p
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public int getDeliveryCost(String...items) throws IOException, InterruptedException {
+
         //program proceeds when status code is 200
-        if (response.statusCode() == 200) {
+        if (shopMenus.size()!=0) {
             int finalPence =0;
 
-            //Arraylist of data type MenusDB is created which parses data from the website database using Gson
-            Type listType = new TypeToken<ArrayList<MenusDB>>() {}.getType();
-            ArrayList<MenusDB> menus = new Gson().fromJson(response.body(), listType);
+            for (String item : items) {
+                finalPence+= itemPriceMap.get(item);
 
-            //this creates an ArrayList of data type MenuArray called itemsPrice with just the names of the items across the entire database-menus.json and prices
-            ArrayList<MenuArray> itemsPrice = new ArrayList<MenuArray>();
-            for(int i =0; i< menus.size(); i++){
-                for(int k=0; k < menus.get(i).menu.size() ; k++){
-                    itemsPrice.add(menus.get(i).menu.get(k));
-                }
             }
 
-
-
-            finalPence = finalPence + crossCheck(n, itemsPrice);
 
             //delivery charge of 50 pence is added.
             return finalPence+50;
