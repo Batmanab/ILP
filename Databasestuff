@@ -1,0 +1,8 @@
+
+inside year3/database/database
+java -jar 'D:\Year 3\db-derby-10.15.2.0-bin\lib\derbyrun.jar' server start
+
+
+connect 'jdbc:derby:derbyDB'
+
+SELECT * FROM ORDERS NATURAL JOIN ORDERDETAILS;

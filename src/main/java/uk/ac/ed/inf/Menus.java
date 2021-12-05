@@ -13,9 +13,13 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class Menus {
-    private String machine;
-    private String port;
+    private final String machine;
+    private final String port;
+    private final ArrayList<ShopMenu> shopMenus;
     private static final HttpClient client = HttpClient.newHttpClient();
+    private final HashMap<String, Integer> itemPriceMap = new HashMap<>() ;
+    private final HashMap<String, String> itemLocationMap= new HashMap<>() ;
+    private HashMap<String, String> itemShopMap= new HashMap<>() ;
 
     public Menus (String machine, String port){
         this.machine = machine;
@@ -31,10 +35,9 @@ public class Menus {
             }
         }
     }
-
-    private HashMap<String, Integer> itemPriceMap = new HashMap<>() ;
-    private HashMap<String, String> itemLocationMap= new HashMap<>() ;
-    private HashMap<String, String> itemShopMap= new HashMap<>() ;
+    public String getLocationByItem(String item){
+        return itemLocationMap.get(item);
+    }
 
     private ArrayList<ShopMenu> getShopMenus()  {
 
@@ -69,7 +72,7 @@ public class Menus {
      * @throws IOException
      * @throws InterruptedException
      */
-    public int getDeliveryCost(String...items) throws IOException, InterruptedException {
+    public int getDeliveryCost(String... items) throws IOException, InterruptedException {
 
         //program proceeds when status code is 200
         if (shopMenus.size()!=0) {

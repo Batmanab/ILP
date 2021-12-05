@@ -1,5 +1,6 @@
 package uk.ac.ed.inf;
 import java.lang.Math;
+import java.util.ArrayList;
 
 public class LongLat {
     double longitude; //this is x
@@ -36,25 +37,46 @@ public class LongLat {
 
     //when drone hovers, and doesn't change position- it returns the same coordinates.
     public LongLat nextPosition (int angle){
+
+        //rounding off to the nearest multiple of  10
+        int remainderAngle = angle%10;
+        if(remainderAngle>=5){
+            angle = angle + (10 - remainderAngle);
+        }
+        else{
+            angle = angle - remainderAngle;
+        }
+
         if (angle == -999){
             LongLat nextPosition = new LongLat(this.longitude,this.latitude);
             return nextPosition;
         }
-
         //new coordinates are found using trigonometry rations (angles are turned into radians)
         //logic is (new y, new x) = (old y + sin(angle)*0.0015, old x + cos(angle)*0.00015)
         double a = 0.00015 * Math.sin((angle * Math.PI)/180) + this.latitude; // new y is sin(angle) + initial latitude
         double b = 0.00015* Math.cos((angle * Math.PI)/180) + this.longitude;
-        System.out.println(a+ "" + b);
+        //System.out.println(a+ "" + b);
 
         LongLat nextPosition = new LongLat(b,a);
         return nextPosition;
     }
+    public ArrayList<LongLat> getPathCoordinates(LongLat endPos, int angle){
+        ArrayList<LongLat> pathCoordinates = new ArrayList<>();
+        LongLat currentPos = new LongLat(this.longitude,this.latitude);
 
+        do{
+             currentPos = currentPos.nextPosition(angle);
+             pathCoordinates.add(currentPos);
 
+        }while(!currentPos.closeTo(endPos));
 
+        return pathCoordinates;
 
+    }
 
+    public int getAngle(LongLat destCoordinate){
+        return (int) Math.round(Math.toDegrees(Math.atan2(destCoordinate.latitude - this.latitude, destCoordinate.longitude-this.longitude)));
+    }
 
     //helper method to calculate distance between two points
     public static double Pythag(double x1, double y1, double x2, double y2){
