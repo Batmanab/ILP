@@ -1,8 +1,6 @@
 package uk.ac.ed.inf;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,6 +10,10 @@ import java.util.ArrayList;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * This class deals with parsing menu data from the json file after performing http request.
+ * This also creates 3 HashMaps, item-price, item-location, item-restaurant map which is used later on.
+ */
 public class Menus {
     private final String machine;
     private final String port;
@@ -39,30 +41,29 @@ public class Menus {
         return itemLocationMap.get(item);
     }
 
+    /**
+     * This method gets all data from the json file after performing http request.
+     * @return ArrayList<ShopMenu> which populates shopMenus.
+     */
     private ArrayList<ShopMenu> getShopMenus()  {
 
         String urlString = "http://" + machine + ":" + port + "/menus/menus.json";
-
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(urlString))
                 .build();
         try{
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
+        //program proceeds when status code is 200
         if (response.statusCode() == 200) {
             //Arraylist of data type ShopMenu is created which parses data from the website database using Gson
             Type listType = new TypeToken<ArrayList<ShopMenu>>() {}.getType();
             ArrayList<ShopMenu> menus = new Gson().fromJson(response.body(), listType);
-
             return menus;
-
         }else {
             return new ArrayList<ShopMenu>() ;
         }} catch (Exception e){
             return new ArrayList<ShopMenu>() ;
         }
-
-
     }
 
     /**
@@ -74,16 +75,11 @@ public class Menus {
      */
     public int getDeliveryCost(String... items) throws IOException, InterruptedException {
 
-        //program proceeds when status code is 200
         if (shopMenus.size()!=0) {
             int finalPence =0;
-
             for (String item : items) {
                 finalPence+= itemPriceMap.get(item);
-
             }
-
-
             //delivery charge of 50 pence is added.
             return finalPence+50;
 

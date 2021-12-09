@@ -1,18 +1,16 @@
 package uk.ac.ed.inf;
-
 import uk.ac.ed.inf.database.Order;
-
-import javax.sound.midi.Soundbank;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class OrderPath {
+    int returnMoves;
+    ArrayList<LongLat> returnPath = new ArrayList<>();
     Order order;
     ArrayList<LongLat> points = new ArrayList<>();
     LongLat startPos;
     LongLat endPos;
     ArrayList<LongLat> locations = new ArrayList<>();
-
+    int moves ;
 
     public OrderPath(Order order, LongLat startPos, final Menus menuObj) {
 
@@ -22,13 +20,43 @@ public class OrderPath {
         for (String item : order.item){
             if (!locations.contains(What3Words.decode(menuObj.getLocationByItem(item)))){
                 locations.add(What3Words.decode(menuObj.getLocationByItem(item)));
-                //System.out.println(menuObj.getLocationByItem(item));
             }
         }
         locations.add(endPos);
+        setPath();
+        setReturnPath();
     }
     //moves between startPos and endPos
-    public int getMoves() {
+    private void setReturnPath(){
+        LongLat currentPos = this.endPos,nextPos;
+        do{
+            nextPos = currentPos.nextPosition(currentPos.getAngle(Landmarks.appletonTower));
+            if(NoFlyZones.coordinateOutsideNoFlyZone(nextPos)){
+                currentPos = nextPos;
+                this.returnMoves ++;
+                this.returnPath.add(currentPos);
+            }
+            else {
+                this.returnPath.clear();
+                if (this.endPos.distanceTo(Landmarks.checkpoint1)<this.endPos.distanceTo(Landmarks.checkpoint2)){
+                    this.returnMoves =  (int) (this.endPos.distanceTo(Landmarks.checkpoint1)/0.00015) +
+                            (int) (Landmarks.appletonTower.distanceTo(Landmarks.checkpoint1)/0.00015);
+                    this.returnPath.add(Landmarks.checkpoint1);
+                }
+                else{
+                    this.returnMoves =  (int) (this.endPos.distanceTo(Landmarks.checkpoint2)/0.00015) +
+                            (int) (Landmarks.appletonTower.distanceTo(Landmarks.checkpoint2)/0.00015);
+                    this.returnPath.add(Landmarks.checkpoint2);
+                }
+            }
+        }while(!currentPos.closeTo(Landmarks.appletonTower));
+        this.returnPath.add(Landmarks.appletonTower);
+    }
+
+    /**
+     *
+     */
+    private void setPath() {
         int moves = 0;
         int angle; LongLat nextPos;
         LongLat currentPos = this.startPos;
@@ -40,16 +68,13 @@ public class OrderPath {
             do{
                 angle = currentPos.getAngle(location);
                 nextPos = currentPos.nextPosition(angle);
-                System.out.println(location.latitude+","+location.longitude+"   "+nextPos.latitude+","+nextPos.longitude);
                 if (NoFlyZones.coordinateOutsideNoFlyZone(nextPos)) {
-//                    System.out.println("**distance**"+ currentPos.distanceTo(nextPos));
+
                     currentPos = nextPos;
                     pathMoves++;
                     pathPoints.add(currentPos);
-                    System.out.println("IF");
                 }
                 else{
-                    System.out.println("ELSE");
                     pathPoints.clear();
                     pathPoints.add(originalStartPos);
                     if(originalStartPos.distanceTo(Landmarks.checkpoint1) < originalStartPos.distanceTo(Landmarks.checkpoint2)){
@@ -65,16 +90,12 @@ public class OrderPath {
                         pathPoints.add(Landmarks.checkpoint2);
                     }
                 }
-                System.out.println("****pathpoints size  " +pathPoints.size());
 
             }while (!location.closeTo(currentPos));
-            System.out.println("****end****");
             points.addAll(pathPoints);
-            moves = moves+ pathMoves;
-        }
-
-
-        return moves + locations.size();
+                moves = moves+ pathMoves;
+            }
+        this.moves = moves + locations.size();
     }
 
 }

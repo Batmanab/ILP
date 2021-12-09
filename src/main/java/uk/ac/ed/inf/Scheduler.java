@@ -1,10 +1,7 @@
 package uk.ac.ed.inf;
 import uk.ac.ed.inf.database.Order;
 
-import java.awt.*;
-import java.io.IOException;
 import java.sql.Date;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,58 +12,47 @@ import java.util.Map;
 //moves function- takes starting position + ending position, returns number of moves and returns array of positions
 //in flightpath
 
+/**
+ *
+ */
 public class Scheduler {
     public Date date;
-    private final ArrayList<OrderPath> scheduledOrders;
+    int noOfMoves = 1500;
+    public int movesUsed;
+    private final ArrayList<OrderPath> finalOrders;
 
     public Scheduler(Date date, ArrayList<Order> allOrders, final Menus menus) {
         this.date = date;
-        this.scheduledOrders = scheduleOrders(allOrders, menus);
+        this.finalOrders = makeFinalOrdersSchedule(allOrders,menus);
     }
 
 
-    //takes all orders, returns arraylist of scheduled orders
+    /**
+     * @param Orders
+     * @param menus
+     * @return
+     */
     private ArrayList<OrderPath> scheduleOrders(ArrayList<Order> Orders, Menus menus) {
         ArrayList<Order> allOrders = (ArrayList<Order>) Orders.clone();
 
-        //initialize starting point as appleton tower
         LongLat currentStartingPoint = Landmarks.appletonTower;
 
-
-        //remove currentOrder from allOrders arraylist
-        //run while loop until allOrders is empty
-
         ArrayList<OrderPath> ordersByPM = new ArrayList<>() ;
-
         while (allOrders.size() >0 ){
-            //get order with max P/Moves value
-            OrderPath bestOrder = bestOrderPath(currentStartingPoint,allOrders,menus);
-            //ordersByPM.put(singleOrderPath,orderPricePerMove);
 
-            //adds the order with max P/Moves value to scheduled list
-            //ordersByDay.add(maxOrder);
-            //starting point for next iteration
+            OrderPath bestOrder = bestOrderPath(currentStartingPoint,allOrders,menus);
+
             currentStartingPoint = What3Words.decode(bestOrder.order.deliverTo);
             //the order with max P/Moves value is removed and rest of the list is passed through function again
-
             allOrders.remove(bestOrder.order);
-//            System.out.println(bestOrder.order);
-//            System.out.println("Movess"+bestOrder.getMoves());
-//            for(LongLat point: bestOrder.points){
-//                System.out.println(point.latitude +","+ point.longitude + ",red");
-//            }
+
             ordersByPM.add(bestOrder);
-
-
         }
-
         return ordersByPM;
-
     }
-    public ArrayList<OrderPath> getScheduledOrders(){
-        return this.scheduledOrders;
+    public ArrayList<OrderPath> getFinalOrders(){
+        return this.finalOrders;
     }
-
     //returns order with max P/Moves value
     //will use orderpath class and getdeliveryprice
     private OrderPath bestOrderPath (LongLat startingPoint,ArrayList<Order> orders,Menus menus) {
@@ -75,7 +61,7 @@ public class Scheduler {
         try{
             for (Order order: orders){
                 OrderPath orderPath = new OrderPath(order, startingPoint,menus);
-                int moves = orderPath.getMoves();
+                int moves = orderPath.moves;
                 int deliveryCost = menus.getDeliveryCost(orderPath.order.item.toArray(new String[0]));
                 double pricePerMove = (double) deliveryCost/moves;
                 if (pricePerMove>maxPM){
@@ -85,20 +71,31 @@ public class Scheduler {
             }
         }
         catch (Exception E){ System.err.println("Scheduler, getPriceMove");
+
         }
         return maxPMOrderPath;
     }
 
-    private int moves(LongLat initialPoint, LongLat finalPoint){
-    return 1;
-    }
+    //final order schedule for a day- including return moves to appletontower
+   public ArrayList<OrderPath> makeFinalOrdersSchedule(ArrayList<Order> allOrders, Menus menus){
+        ArrayList<OrderPath> scheduledOrders = scheduleOrders(allOrders, menus);
+        ArrayList<OrderPath> finalOrderList = new ArrayList<>();
+       for (OrderPath order : scheduledOrders){
 
-    public void priceByDistance(){
+           int orderMoves = order.moves + order.returnMoves;
+           if (orderMoves< this.noOfMoves){
+               finalOrderList.add(order);
+               this.noOfMoves = this.noOfMoves - order.moves;
+           }
+       }
+       int movesUsed =  1500 - noOfMoves + finalOrderList.get(finalOrderList.size()-1).returnMoves;
+       setMovesUsed(movesUsed);
+       return finalOrderList;
+   }
 
-    }
-
-
-
+   private void setMovesUsed(int moves){
+        this.movesUsed = moves;
+   }
 
     // takes datewise object, schedules orders chronologically and returns the correct schedule (list?) of order
     //by calculating price/distance and keeping in mind 1500 moves per day.
@@ -106,5 +103,40 @@ public class Scheduler {
         System.out.println(What3Words.decode("army.monks.grapes"));
     }
 
+    public ArrayList<Flightpath> getAllPathPoints(){
+        ArrayList<Flightpath> flightpathsList = new ArrayList<>();
+        for (OrderPath order : this.finalOrders){
+            LongLat startCoordinate = order.points.get(0);
+            ArrayList<LongLat> coordinatePairs = new ArrayList<>();
+            for (LongLat orderPoint :order.points.subList(1,order.points.size()-1)){
+                coordinatePairs.add(startCoordinate);
+                coordinatePairs.add(orderPoint);
+                flightpathsList.add(new Flightpath(order.order.orderNo,coordinatePairs));
+                coordinatePairs.clear();
+                startCoordinate = orderPoint;
+            }
+            if (this.finalOrders.indexOf(order) == this.finalOrders.size()-1){
+                startCoordinate = order.returnPath.get(0);
+                for (LongLat orderPoint : order.returnPath){
+                    coordinatePairs.add(startCoordinate);
+                    coordinatePairs.add(orderPoint);
+                    flightpathsList.add(new Flightpath(order.order.orderNo,coordinatePairs));
+                    coordinatePairs.clear();
+                    startCoordinate = orderPoint;
+                }
+            }
+        }
+        return flightpathsList;
+
+    }
+    public String getGeoJson(){
+       ArrayList<Flightpath> flightpathsList = getAllPathPoints();
+       StringBuilder geoJsonBuilder= new StringBuilder("[" + flightpathsList.get(0).fromLongitude + "," +
+               flightpathsList.get(0).fromLatitude + "]");
+       for (Flightpath flightpath : flightpathsList){
+           geoJsonBuilder.append(",[").append(flightpath.toLongitude).append(",").append(flightpath.toLatitude).append("]");
+       }
+       return geoJsonBuilder.toString();
+    }
 
 }
