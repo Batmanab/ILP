@@ -2,6 +2,9 @@ package uk.ac.ed.inf;
 import java.lang.Math;
 import java.util.ArrayList;
 
+/**
+ *
+ */
 public class LongLat {
     double longitude; //this is x
     double latitude; //y
@@ -14,10 +17,7 @@ public class LongLat {
     //function returns true if position coordinates is confined within the allowed zone.
     public boolean isConfined() {
         if (longitude<-3.184319 && longitude>-3.192473) {
-            if(latitude<55.946233 && latitude>55.94261 ) {
-                return true;
-            }
-            return false;
+            return latitude < 55.946233 && latitude > 55.94261;
         }
         return false;
     }
@@ -28,11 +28,7 @@ public class LongLat {
 
     //here, if distance is less than 0.00015 degrees then, the function returns true
     public boolean closeTo(LongLat obj) {
-        if (this.distanceTo(obj) < 0.00015) {
-            return true;
-
-        }
-        return false;
+        return this.distanceTo(obj) < 0.00015;
     }
 
     //when drone hovers, and doesn't change position- it returns the same coordinates.
@@ -48,8 +44,7 @@ public class LongLat {
         }
 
         if (angle == -999){
-            LongLat nextPosition = new LongLat(this.longitude,this.latitude);
-            return nextPosition;
+            return new LongLat(this.longitude, this.latitude);
         }
         //new coordinates are found using trigonometry rations (angles are turned into radians)
         //logic is (new y, new x) = (old y + sin(angle)*0.0015, old x + cos(angle)*0.00015)
@@ -57,8 +52,7 @@ public class LongLat {
         double b = 0.00015* Math.cos((angle * Math.PI)/180) + this.longitude;
         //System.out.println(a+ "" + b);
 
-        LongLat nextPosition = new LongLat(b,a);
-        return nextPosition;
+        return new LongLat(b,a);
     }
     public ArrayList<LongLat> getPathCoordinates(LongLat endPos, int angle){
         ArrayList<LongLat> pathCoordinates = new ArrayList<>();
@@ -81,8 +75,7 @@ public class LongLat {
     //helper method to calculate distance between two points
     public static double Pythag(double x1, double y1, double x2, double y2){
 
-        double distance = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
-        return distance;
+        return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
     }
 
 

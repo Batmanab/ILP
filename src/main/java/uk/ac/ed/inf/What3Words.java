@@ -33,7 +33,7 @@ public class What3Words {
         HashMap<String,LongLat> w3wMapTemp = new HashMap<>();
         try {
             List<Path> collect = Files.find(Paths.get("website/words"), 30, (path, fileAttributes) -> fileAttributes.isRegularFile()).collect(Collectors.toList());
-            //extract data using gson from folder, create hashmap with final string from path and lat long values
+            //extract data using gson from folder, create hashmap with final string from path and long lat values
             for (Path path: collect) {
                 String jsonData = new String(Files.readAllBytes(path));
                 JsonParser parser = new JsonParser();

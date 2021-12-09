@@ -5,13 +5,6 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-//One function, takes initial position, days orders - return order id with maximum p/moves
-//function takes order ID, performs the move, changes the initial position to new position after the move- push database
-
-//moves function- takes starting position + ending position, returns number of moves and returns array of positions
-//in flightpath
-
 /**
  *
  */
@@ -25,8 +18,6 @@ public class Scheduler {
         this.date = date;
         this.finalOrders = makeFinalOrdersSchedule(allOrders,menus);
     }
-
-
     /**
      * @param Orders
      * @param menus
@@ -129,7 +120,7 @@ public class Scheduler {
         return flightpathsList;
 
     }
-    public String getGeoJson(){
+    public String getAsLineString(){
        ArrayList<Flightpath> flightpathsList = getAllPathPoints();
        StringBuilder geoJsonBuilder= new StringBuilder("[" + flightpathsList.get(0).fromLongitude + "," +
                flightpathsList.get(0).fromLatitude + "]");

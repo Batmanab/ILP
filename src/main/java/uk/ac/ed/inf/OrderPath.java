@@ -31,7 +31,7 @@ public class OrderPath {
         LongLat currentPos = this.endPos,nextPos;
         do{
             nextPos = currentPos.nextPosition(currentPos.getAngle(Landmarks.appletonTower));
-            if(NoFlyZones.coordinateOutsideNoFlyZone(nextPos)){
+            if(NoFlyZones.coordinateOutsideNoFlyZone(nextPos) && nextPos.isConfined()){
                 currentPos = nextPos;
                 this.returnMoves ++;
                 this.returnPath.add(currentPos);

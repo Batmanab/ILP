@@ -63,7 +63,6 @@ public class Order {
         return result.toString();
     }
 
-
     public static ArrayList<Order> retrieveOrdersByDate(DerbyDB db,Date deliveryDate) throws SQLException {
         ResultSet ordersByDate = db.selectByDate("SELECT distinct orderno, Customer, Deliverto from orders WHERE DELIVERYDATE =?", deliveryDate);
         ArrayList<Order> orders = new ArrayList<>();
