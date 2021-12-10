@@ -74,6 +74,10 @@ public class LongLat {
      */
     public LongLat nextPosition (int angle){
 
+        if (angle == -999 ){
+            return new LongLat(this.longitude, this.latitude);
+        }
+
         //rounding off to the nearest multiple of  10
         int remainderAngle = angle%10;
         if(remainderAngle>=5){
@@ -83,9 +87,6 @@ public class LongLat {
             angle = angle - remainderAngle;
         }
 
-        if (angle == -999){
-            return new LongLat(this.longitude, this.latitude);
-        }
         //new coordinates are found using trigonometry rations (angles are turned into radians)
         //logic is (new y, new x) = (old y + sin(angle)*0.0015, old x + cos(angle)*0.00015)
         double a = 0.00015 * Math.sin((angle * Math.PI)/180) + this.latitude; // new y is sin(angle) + initial latitude

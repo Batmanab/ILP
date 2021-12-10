@@ -9,6 +9,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 
+/**
+ *This class deals with extracting data from an Order.
+ * The Order object is formed by combining two database tables - Orders and Orderdetails, and all the attributes are
+ * encapsulated as one object. They are joined by using unique order number, which is a 8 character hexadecimal string, present
+ * in both tables.
+ */
 public class Order {
     public String orderNo;
     public Date deliveryDate;
@@ -31,9 +37,11 @@ public class Order {
             System.err.println("Order.java : Error adding items");
         }
 
-
     }
 
+    /**
+     * @return this is for debugging purposes.
+     */
     public String toString() {
         StringBuilder result = new StringBuilder();
         String newLine = System.getProperty("line.separator");
@@ -63,6 +71,12 @@ public class Order {
         return result.toString();
     }
 
+    /**
+     * @param db database instance
+     * @param deliveryDate the delivery date, for which orders are to be retrieved
+     * @return ArrayList<Order> - all the order objects in form of an arraylist, for the given date
+     * @throws SQLException
+     */
     public static ArrayList<Order> retrieveOrdersByDate(DerbyDB db,Date deliveryDate) throws SQLException {
         ResultSet ordersByDate = db.selectByDate("SELECT distinct orderno, Customer, Deliverto from orders WHERE DELIVERYDATE =?", deliveryDate);
         ArrayList<Order> orders = new ArrayList<>();

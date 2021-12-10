@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -30,50 +31,62 @@ import java.util.stream.Collectors;
 public class App {
 
     public static void main(String[] args) throws SQLException, IOException, InterruptedException {
-        Menus menus = new Menus("localhost", "9898");
-        DerbyDB db = new DerbyDB("jdbc:derby://localhost:1527/derbyDB");
-        //This retrieves delivery dates from orders
-        ResultSet deliveryDatesFromDB = db.select("SELECT DISTINCT DELIVERYDATE FROM ORDERS ORDER BY DELIVERYDATE");
-        ArrayList<Date> deliveryDates = new ArrayList<>();
-        Deliveries.makeTable(db);
-        Flightpath.makeTable(db);
-        while (deliveryDatesFromDB.next()) {
-            deliveryDates.add(deliveryDatesFromDB.getDate("DeliveryDate"));
+        for (String arg : args) {
+            System.out.println(arg);
         }
-        for (Date deliveryDate : deliveryDates) {
-//            if(!deliveryDate.toString().equals("2022-02-02")){
+        return ;
+//        long startTime = System.nanoTime();
+//        Menus menus = new Menus("localhost", args[3]);
+//        DerbyDB db = new DerbyDB("jdbc:derby://localhost:"+ args[4] +"/derbyDB");
+//        //This retrieves delivery dates from orders
+//        ResultSet deliveryDatesFromDB = db.select("SELECT DISTINCT DELIVERYDATE FROM ORDERS ORDER BY DELIVERYDATE");
+//        ArrayList<Date> deliveryDates = new ArrayList<>();
+//        Deliveries.makeTable(db);
+//        Flightpath.makeTable(db);
+//        while (deliveryDatesFromDB.next()) {
+//            deliveryDates.add(deliveryDatesFromDB.getDate("DeliveryDate"));
+//        }
+//        for (Date deliveryDate : deliveryDates) {
+//            if(!deliveryDate.toString().equals(args[2] + "-" + args[1] + "-" + args[0])){
 //                continue;
 //            }
-            ArrayList<Order> orders = Order.retrieveOrdersByDate(db, deliveryDate);
-
-            //checks if order has >1 and <4 items
-            orders.removeIf(order -> order.item.size() > 4 || order.item.size() < 1);
-
-            Scheduler schedule = new Scheduler(deliveryDate, orders, menus );
-            ArrayList<Deliveries> deliveries = new ArrayList<>();
-
-            for(OrderPath path: schedule.getFinalOrders()){
-                deliveries.add(new Deliveries(path.order.orderNo,
-                        path.order.deliverTo,menus.getDeliveryCost(path.order.item.toArray(new String[0]))));
-                System.out.println(path.order);
-                System.out.println(path.moves);
-                System.out.println(path.points);
-
-            }
-            //pushing to database table called deliveries, using Deliveries class.
-            Deliveries.runBatch(db, deliveries);
-            //pushing to database table called flightpath, using Flightpath class.
-            Flightpath.runBatch(db,schedule.getAllPathPoints());
-            System.out.println(schedule.getAsLineString());
-            System.out.println(deliveryDate.toLocalDate());
-            //System.out.println(deliveryDate.toString());
-            if((deliveryDate.toLocalDate().getDayOfMonth() == deliveryDate.toLocalDate().getMonthValue()) &&
-                    (deliveryDate.toLocalDate().getYear() == 2022)){
-                makeGeoJson(schedule.getAsLineString(),deliveryDate);
-            }
-        }
+//            ArrayList<Order> orders = Order.retrieveOrdersByDate(db, deliveryDate);
+//
+//            //checks if order has >1 and <4 items
+//            orders.removeIf(order -> order.item.size() > 4 || order.item.size() < 1);
+//
+//            Scheduler schedule = new Scheduler(deliveryDate, orders, menus );
+//            ArrayList<Deliveries> deliveries = new ArrayList<>();
+//
+//            for(OrderPath path: schedule.getFinalOrders()){
+//                deliveries.add(new Deliveries(path.order.orderNo,
+//                        path.order.deliverTo,menus.getDeliveryCost(path.order.item.toArray(new String[0]))));
+//                System.out.println(path.order);
+//                System.out.println(path.moves);
+//                System.out.println(path.points);
+//
+//            }
+//            //pushing to database table called deliveries, using Deliveries class.
+//            Deliveries.runBatch(db, deliveries);
+//            //pushing to database table called flightpath, using Flightpath class.
+//            Flightpath.runBatch(db,schedule.getAllPathPoints());
+//            System.out.println(schedule.getAsLineString());
+//            System.out.println(deliveryDate.toLocalDate());
+//            //System.out.println(deliveryDate.toString());
+//            if((deliveryDate.toLocalDate().getDayOfMonth() == deliveryDate.toLocalDate().getMonthValue()) &&
+//                    (deliveryDate.toLocalDate().getYear() == 2022)){
+//                makeGeoJson(schedule.getAsLineString(),deliveryDate);
+//            }
+//
+//        }
+//        System.out.println("Time elapsed (in seconds) : "+TimeUnit.SECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
 
     }
+
+    /**
+     * @param lineStringCoordinates string value of coordinates, of a particular day, suitable for geojson.
+     * @param date the date for which the flightpath is to be plotted.
+     */
     public static void makeGeoJson(String lineStringCoordinates, Date date){
         try {
             Path collect = Paths.get("Testing/all.geojson");

@@ -10,7 +10,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 
-
+/**
+ * This class deals with pushing data into the flightpath table in the database.
+ */
 public class Flightpath {
     String orderNo;
     double fromLatitude,fromLongitude, toLatitude,toLongitude;
@@ -26,7 +28,8 @@ public class Flightpath {
     }
 
     /**
-     * @param derbyDB
+     * @param derbyDB takes the derbyDB object and creates the sql query- with the column names for the
+     *                table. It then executes the methods passing the queries through them.
      */
     public static void makeTable(DerbyDB derbyDB){
         String sqlDropQuery = "drop table flightpath";
@@ -42,8 +45,9 @@ public class Flightpath {
     }
 
     /**
-     * @param derbyDB
-     * @param flightpaths
+     * @param derbyDB derbyDb object
+     * @param flightpaths has all the flightpaths for a single day
+     *                    it compiles the preparedstatement for each flightpath, as a batch.
      */
     public static void runBatch(DerbyDB derbyDB, ArrayList<Flightpath> flightpaths){
         String sqlQuery = "insert into flightpath(orderNo,fromLongitude,fromLatitude,angle,toLongitude,toLatitude)" +
@@ -66,7 +70,7 @@ public class Flightpath {
     }
 
     /**
-     * @param preparedStatement
+     * @param preparedStatement takes the precompiled prepared statement and executes the batch at once.
      */
     private static void executeBatch(PreparedStatement preparedStatement){
         try {

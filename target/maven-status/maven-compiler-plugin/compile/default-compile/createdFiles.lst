@@ -1,7 +1,15 @@
+uk\ac\ed\inf\database\Deliveries.class
 uk\ac\ed\inf\MenuItem.class
 uk\ac\ed\inf\Menus.class
-uk\ac\ed\inf\ShopMenu.class
 uk\ac\ed\inf\database\DerbyDB.class
 uk\ac\ed\inf\Menus$1.class
+uk\ac\ed\inf\NoFlyZones.class
 uk\ac\ed\inf\App.class
+uk\ac\ed\inf\database\Order.class
+uk\ac\ed\inf\Landmarks.class
+uk\ac\ed\inf\ShopMenu.class
+uk\ac\ed\inf\Flightpath.class
+uk\ac\ed\inf\Scheduler.class
+uk\ac\ed\inf\OrderPath.class
 uk\ac\ed\inf\LongLat.class
+uk\ac\ed\inf\What3Words.class

@@ -2,6 +2,9 @@ package uk.ac.ed.inf.database;
 
 import java.sql.*;
 
+/**
+ * Creates a database object of DerbyDb.
+ */
 public class DerbyDB {
     private final Connection connection;
 
@@ -9,6 +12,10 @@ public class DerbyDB {
         connection = DriverManager.getConnection(jdbcString);
     }
 
+    /**
+     * @param sqlQuery string
+     * @return output for select statement as a ResultSet
+     */
     public ResultSet select(String sqlQuery) {
         Statement statement;
         try {
@@ -21,6 +28,12 @@ public class DerbyDB {
 
     }
 
+    /**
+     * @param sqlQuery: the query
+     * @param date : the date
+     * @return
+     * executes the prepared statement with date parameter as placeholder. It returns the output as ResultSet.
+     */
     public  ResultSet selectByDate(String sqlQuery, Date date){
         PreparedStatement pStatement;
         try{
@@ -32,6 +45,11 @@ public class DerbyDB {
             return null;
         }
     }
+
+    /**
+     * @param sqlQuery the sql query
+     *                 to run CREATE,UPDATE statement.
+     */
     public void executeUpdate(String sqlQuery){
 
         Statement statement;
@@ -44,6 +62,11 @@ public class DerbyDB {
 
         }
     }
+
+    /**
+     * @param sqlQuery the sql query
+     *                 to run DROP statement.
+     */
     public void execute(String sqlQuery){
 
         Statement statement;
@@ -57,6 +80,10 @@ public class DerbyDB {
         }
     }
 
+    /**
+     * @param sqlQuery sql query
+     * @return returns a PreparedStatement object.
+     */
     public PreparedStatement preparedStatement(String sqlQuery){
 
         try {
