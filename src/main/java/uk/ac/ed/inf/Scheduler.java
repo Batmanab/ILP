@@ -121,13 +121,12 @@ public class Scheduler {
 
     }
     public String getAsLineString(){
-       ArrayList<Flightpath> flightpathsList = getAllPathPoints();
-       StringBuilder geoJsonBuilder= new StringBuilder("[" + flightpathsList.get(0).fromLongitude + "," +
-               flightpathsList.get(0).fromLatitude + "]");
-       for (Flightpath flightpath : flightpathsList){
-           geoJsonBuilder.append(",[").append(flightpath.toLongitude).append(",").append(flightpath.toLatitude).append("]");
+        ArrayList<LongLat> scheduledCoordinates = new ArrayList<>();
+       for (OrderPath orderPath : this.finalOrders){
+           scheduledCoordinates.addAll(orderPath.points);
        }
-       return geoJsonBuilder.toString();
+       scheduledCoordinates.addAll(this.finalOrders.get(this.finalOrders.size()-1).returnPath);
+       return String.valueOf(scheduledCoordinates);
     }
 
 }

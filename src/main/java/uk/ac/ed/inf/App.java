@@ -7,6 +7,7 @@ import uk.ac.ed.inf.database.Deliveries;
 import uk.ac.ed.inf.database.DerbyDB;
 import uk.ac.ed.inf.database.Order;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +15,8 @@ import java.nio.file.Paths;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +41,9 @@ public class App {
             deliveryDates.add(deliveryDatesFromDB.getDate("DeliveryDate"));
         }
         for (Date deliveryDate : deliveryDates) {
+//            if(!deliveryDate.toString().equals("2022-02-02")){
+//                continue;
+//            }
             ArrayList<Order> orders = Order.retrieveOrdersByDate(db, deliveryDate);
 
             //checks if order has >1 and <4 items
@@ -50,36 +56,45 @@ public class App {
                 deliveries.add(new Deliveries(path.order.orderNo,
                         path.order.deliverTo,menus.getDeliveryCost(path.order.item.toArray(new String[0]))));
                 System.out.println(path.order);
-                System.out.println(path.moves );
+                System.out.println(path.moves);
+                System.out.println(path.points);
+
             }
             //pushing to database table called deliveries, using Deliveries class.
             Deliveries.runBatch(db, deliveries);
             //pushing to database table called flightpath, using Flightpath class.
             Flightpath.runBatch(db,schedule.getAllPathPoints());
             System.out.println(schedule.getAsLineString());
-            makeGeoJson(schedule.getAsLineString());
-            break;
+            System.out.println(deliveryDate.toLocalDate());
+            //System.out.println(deliveryDate.toString());
+            if((deliveryDate.toLocalDate().getDayOfMonth() == deliveryDate.toLocalDate().getMonthValue()) &&
+                    (deliveryDate.toLocalDate().getYear() == 2022)){
+                makeGeoJson(schedule.getAsLineString(),deliveryDate);
+            }
         }
 
     }
-    public static void makeGeoJson(String lineStringCoordinates){
+    public static void makeGeoJson(String lineStringCoordinates, Date date){
         try {
             Path collect = Paths.get("Testing/all.geojson");
             String jsonData = new String(Files.readAllBytes(collect));
-
             JsonParser parser = new JsonParser();
             JsonObject object = (JsonObject) parser.parse(jsonData);
             JsonArray features = object.get("features").getAsJsonArray();
 
-            String finalString = "{ \"type\": \"Feature\", \"geometry\": { \"type\": \"LineString\", \"coordinates\": [" +
-                    lineStringCoordinates + "] }, \"properties\": { \"stroke\": \"#808080\"}}";
+            String finalString = "{ \"type\": \"Feature\", \"geometry\": { \"type\": \"LineString\", \"coordinates\":" +
+                    lineStringCoordinates + "}, \"properties\": { \"stroke\": \"#808080\"}}";
 
             //System.out.println(finalString);
             features.add(parser.parse(finalString));
             //System.out.println(features);
             object.add("features", features);
 
-            System.out.println(object);
+            String fileName = "drone-"+ date.toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) +".geojson";
+            FileWriter newFile = new FileWriter("Output/" + fileName);
+            newFile.write(String.valueOf(object));
+            newFile.flush();
+            newFile.close();
 
         } catch (IOException e) {
             System.err.println("geoJson file not found");

@@ -90,10 +90,9 @@ public class OrderPath {
                         pathPoints.add(Landmarks.checkpoint2);
                     }
                 }
-
             }while (!location.closeTo(currentPos));
             points.addAll(pathPoints);
-                moves = moves+ pathMoves;
+            moves = moves+ pathMoves;
             }
         this.moves = moves + locations.size();
     }
